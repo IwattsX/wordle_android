@@ -56,55 +56,13 @@ class MainActivity : AppCompatActivity() {
         val linearLayoutLeft = findViewById<LinearLayout>(R.id.leftoutputs)
 
 
-        submit.setOnClickListener{
+        submit.setOnClickListener {
             val guess = userGuess.text.toString().uppercase()
-            val checker = checkGuess(guess, wordToGuess)
-
-            val res = colorizeGuess(guess, checker)
             if (counter < 3) {
-                if (guess.length == 4) {
-                    val leftTextView = TextView(this).apply {
-                        text = "Guess #${counter + 1}"
-                        textSize = 18f
-                        setTextColor(Color.WHITE)
-                        layoutParams = LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.WRAP_CONTENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT
-                        )
-                    }
-
-                    linearLayoutLeft.addView(leftTextView)
-
-
-                    val rightTextView = TextView(this).apply {
-                        text = res
-                        textSize = 18f
-                        layoutParams = LinearLayout.LayoutParams(
-                            LinearLayout.LayoutParams.WRAP_CONTENT,
-                            LinearLayout.LayoutParams.WRAP_CONTENT
-                        )
-                    }
-                    linearLayoutRight.addView(rightTextView)
-                    counter++
-                    if (counter == 3 || checker.joinToString("") == "OOOO") {
-                        if(checker.joinToString ("") == "0000"){
-                            revealView.text = "You are correct! Word = $wordToGuess"
-                            revealView.visibility = View.VISIBLE
-                        }
-                        else{
-                            revealView.text = "Ran out of tries, the word was $wordToGuess"
-                            revealView.visibility = View.VISIBLE
-                        }
-                        submit.text="RESTART"
-                    }
-                    userGuess.text.clear()
-                }
-                else{
-                    Toast.makeText(userGuess.context, "Word needs to be 4 letters", Toast.LENGTH_SHORT).show()
-                }
-
-            }
-            else{
+                counter = handleGuessSubmission(
+                    guess, wordToGuess, userGuess, linearLayoutLeft, linearLayoutRight, revealView, submit, counter
+                )
+            } else {
                 counter = 0
                 resetGame(userGuess, linearLayoutLeft, linearLayoutRight, submit)
                 wordToGuess = FourLetterWordList.getRandomFourLetterWord()
@@ -115,62 +73,78 @@ class MainActivity : AppCompatActivity() {
         userGuess.setOnKeyListener(View.OnKeyListener { v, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_UP) {
                 val guess = userGuess.text.toString().uppercase()
-                val checker = checkGuess(guess, wordToGuess)
-
-                val res = colorizeGuess(guess, checker)
                 if (counter < 3) {
-                    if (guess.length == 4) {
-                        val leftTextView = TextView(this).apply {
-                            text = "Guess #${counter + 1}"
-                            textSize = 18f
-                            setTextColor(Color.WHITE)
-                            layoutParams = LinearLayout.LayoutParams(
-                                LinearLayout.LayoutParams.WRAP_CONTENT,
-                                LinearLayout.LayoutParams.WRAP_CONTENT
-                            )
-                        }
-
-                        linearLayoutLeft.addView(leftTextView)
-
-
-                        val rightTextView = TextView(this).apply {
-                            text = res
-                            textSize = 18f
-                            layoutParams = LinearLayout.LayoutParams(
-                                LinearLayout.LayoutParams.WRAP_CONTENT,
-                                LinearLayout.LayoutParams.WRAP_CONTENT
-                            )
-                        }
-                        linearLayoutRight.addView(rightTextView)
-                        counter++
-                        if (counter == 3 || checker.joinToString("") == "OOOO") {
-                            if (checker.joinToString("") == "0000") {
-                                revealView.text = "You are correct! Word = $wordToGuess"
-                                revealView.visibility = View.VISIBLE
-                            } else {
-                                revealView.text = "Ran out of tries, the word was $wordToGuess"
-                                revealView.visibility = View.VISIBLE
-                            }
-                            submit.text = "RESTART"
-                        }
-                        userGuess.text.clear()
-                    }
-                    else{
-                        Toast.makeText(userGuess.context, "Word needs to be 4 letters", Toast.LENGTH_SHORT).show()
-                    }
+                    counter = handleGuessSubmission(
+                        guess, wordToGuess, userGuess, linearLayoutLeft, linearLayoutRight, revealView, submit, counter
+                    )
                 } else {
                     counter = 0
                     resetGame(userGuess, linearLayoutLeft, linearLayoutRight, submit)
                     wordToGuess = FourLetterWordList.getRandomFourLetterWord()
                     revealView.visibility = View.INVISIBLE
                 }
-
                 return@OnKeyListener true
-                }
+            }
             false
         })
 
+
     }
+
+    private fun handleGuessSubmission(
+        guess: String,
+        wordToGuess: String,
+        userGuess: EditText,
+        linearLayoutLeft: LinearLayout,
+        linearLayoutRight: LinearLayout,
+        revealView: TextView,
+        submit: Button,
+        counter: Int
+    ): Int {
+        val checkResult = checkGuess(guess, wordToGuess)
+        val coloredGuess = colorizeGuess(guess, checkResult)
+
+        if (guess.length == 4) {
+            val leftTextView = TextView(this).apply {
+                text = "Guess #${counter + 1}"
+                textSize = 18f
+                setTextColor(Color.WHITE)
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
+
+            linearLayoutLeft.addView(leftTextView)
+
+            val rightTextView = TextView(this).apply {
+                text = coloredGuess
+                textSize = 18f
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
+
+            linearLayoutRight.addView(rightTextView)
+
+            if (counter == 2 || checkResult.joinToString("") == "OOOO") {
+                if (checkResult.joinToString("") == "OOOO") {
+                    revealView.text = "You are correct! Word = $wordToGuess"
+                } else {
+                    revealView.text = "Ran out of tries, the word was $wordToGuess"
+                }
+                revealView.visibility = View.VISIBLE
+                submit.text = "RESTART"
+            }
+            userGuess.text.clear()
+            return counter + 1
+        } else {
+            Toast.makeText(userGuess.context, "Word needs to be 4 letters", Toast.LENGTH_SHORT).show()
+            return counter
+        }
+    }
+
 
     private fun resetGame(userGuess : EditText, linearLayoutLeft : LinearLayout, linearLayoutRight : LinearLayout, submit_btn : Button) {
         // Clear the user input
@@ -190,15 +164,20 @@ class MainActivity : AppCompatActivity() {
      *
      * */
     private fun checkGuess(guess: String, wordToGuess: String): List<Char> {
-        val result = MutableList(guess.length) { 'X' } // Initialize result with 'X'
+        val result = MutableList(guess.length) { 'X' } // Initialize result with all (4) 'X'
 
-        // Step 1: Count frequency of each character in wordToGuess
+
+        // Hashmap
         val charFrequency = mutableMapOf<Char, Int>()
         for (char in wordToGuess) {
-            charFrequency[char] = charFrequency.getOrDefault(char, 0) + 1
+            if (charFrequency.containsKey(char)) {
+                charFrequency[char] = charFrequency[char]!! + 1
+            } else {
+                charFrequency[char] = 1
+            }
         }
 
-        // Step 2: Check for correct positions (O) and update frequencies
+        // Update freq and also say what indexes are correct
         for (i in guess.indices) {
             if (guess[i] == wordToGuess[i]) {
                 result[i] = 'O'
@@ -207,6 +186,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Step 3: Check for correct letters in incorrect positions (+)
+        // The rest will be X's from how it was initialized
         for (i in guess.indices) {
             if (result[i] == 'O') continue // Skip already matched correct positions
 
