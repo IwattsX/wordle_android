@@ -32,7 +32,7 @@ The following **additional** features are implemented:
 
 Here's a walkthrough of implemented user stories:
 
-<img src='http://i.imgur.com/link/to/your/gif/file.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
+[![Watch the video]()](./quordle-2024-09-01_03.28.53.mp4)
 
 <!-- Replace this with whatever GIF tool you used! -->
 GIF created with ...  
